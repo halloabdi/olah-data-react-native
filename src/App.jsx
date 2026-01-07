@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Chart from 'chart.js/auto';
 
-// --- 1. KONFIGURASI & DATA GENERATOR ---
+// --- 1. KONFIGURASI THRESHOLD ---
 
 const THRESHOLDS = {
   hsi: { safe: 155, warning: 165 },
@@ -28,21 +28,43 @@ const DATES = [
   "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18"
 ];
 
-const generateHourlyData = (baseValue, variance, isRandom = true) => {
-  let data = [];
-  for (let i = 0; i < 24; i++) {
-    let timeFactor = 0;
-    if (i >= 9 && i <= 15) timeFactor = 1; // Siang panas
-    else if (i >= 0 && i <= 5) timeFactor = -1; // Malam dingin
+// --- 2. SUMBER DATA REAL (DATA TETAP DARI EXCEL) ---
+// Data ini ditanam langsung agar tidak berubah-ubah.
+// Format: [jam_00, jam_01, ..., jam_23] (Total 24 angka per array)
 
-    let val = baseValue + (timeFactor * variance);
-    if (isRandom) val += (Math.random() * 2 - 1);
-    data.push(parseFloat(val.toFixed(1)));
+const REAL_DATA_SOURCE = {
+  "2025-12-12": {
+    A: {
+      // Data Suhu Kandang A 12 Des (Sesuai File Upload)
+      temp: [23.2, 23.7, 23.8, 21.3, 23.7, 24.9, 25.9, 26.1, 26.5, 27.3, 28.6, 29.1, 26.8, 26.9, 25.8, 26.7, 25.8, 25.3, 26.0, 25.4, 25.3, 26.7, 25.9, 24.8], 
+      // Contoh Kelembapan & HSI (Isi sesuai Excel Anda jika berbeda)
+      humidity: [80, 78, 77, 75, 75, 72, 70, 68, 65, 60, 55, 50, 55, 58, 60, 62, 65, 70, 75, 78, 80, 82, 83, 85],
+      hsi: [150, 151, 150, 148, 150, 152, 155, 156, 158, 160, 165, 168, 160, 158, 155, 156, 155, 152, 155, 156, 158, 160, 162, 160]
+    },
+    B: {
+      // Data Suhu Kandang B 12 Des (Sesuai File Upload)
+      temp: [24.0, 21.3, 21.4, 21.3, 22.0, 22.3, 22.5, 25.4, 26.9, 28.2, 28.8, 29.1, 27.8, 26.9, 25.6, 25.6, 26.8, 25.3, 28.0, 28.2, 28.1, 28.0, 27.4, 27.0],
+      humidity: [82, 80, 79, 78, 78, 75, 73, 70, 68, 62, 58, 52, 56, 59, 62, 64, 66, 72, 76, 79, 81, 83, 84, 86],
+      hsi: [152, 149, 149, 148, 149, 150, 152, 158, 160, 162, 166, 168, 162, 160, 158, 158, 160, 158, 162, 163, 164, 165, 164, 162]
+    }
+  },
+  // --- TEMPLATE UNTUK TANGGAL LAIN (Salin data dari Excel Anda ke sini) ---
+  "default": { 
+    A: {
+      temp: [24, 24, 24, 24, 24, 25, 26, 27, 28, 29, 30, 31, 30, 29, 28, 28, 27, 26, 26, 25, 25, 25, 24, 24],
+      humidity: [80, 80, 80, 80, 80, 78, 75, 70, 65, 60, 55, 50, 55, 60, 65, 65, 70, 75, 75, 78, 78, 80, 80, 80],
+      hsi: [155, 155, 155, 155, 155, 156, 158, 160, 162, 165, 168, 170, 165, 162, 160, 160, 158, 156, 156, 155, 155, 155, 155, 155]
+    },
+    B: {
+      temp: [24, 24, 24, 24, 24, 25, 26, 27, 28, 29, 30, 31, 30, 29, 28, 28, 27, 26, 26, 25, 25, 25, 24, 24],
+      humidity: [80, 80, 80, 80, 80, 78, 75, 70, 65, 60, 55, 50, 55, 60, 65, 65, 70, 75, 75, 78, 78, 80, 80, 80],
+      hsi: [155, 155, 155, 155, 155, 156, 158, 160, 162, 165, 168, 170, 165, 162, 160, 160, 158, 156, 156, 155, 155, 155, 155, 155]
+    }
   }
-  return data;
 };
 
-// --- 2. KOMPONEN UTAMA ---
+
+// --- 3. KOMPONEN UTAMA ---
 
 export default function App() {
   const [currentKandang, setCurrentKandang] = useState('A');
@@ -50,28 +72,30 @@ export default function App() {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
-  // Generate Data Sekali Saja (Memoized)
+  // MENGAMBIL DATA DARI SUMBER REAL (BUKAN RANDOM)
   const db = useMemo(() => {
     const database = { A: {}, B: {} };
+    
     DATES.forEach(date => {
-      // Kandang A
-      const tempA = generateHourlyData(26, 4);
-      const humA = generateHourlyData(80, -10);
-      const hsiA = tempA.map((t, i) => parseFloat((t + humA[i] + (t * 0.5)).toFixed(1)));
+      // Cek apakah tanggal ada di REAL_DATA_SOURCE, jika tidak pakai default
+      const dailyData = REAL_DATA_SOURCE[date] || REAL_DATA_SOURCE["default"];
       
-      database.A[date] = { temp: tempA, humidity: humA, hsi: hsiA };
-
-      // Kandang B
-      const tempB = generateHourlyData(26.5, 3.5);
-      const humB = generateHourlyData(82, -8);
-      const hsiB = tempB.map((t, i) => parseFloat((t + humB[i] + (t * 0.5)).toFixed(1)));
+      database.A[date] = { 
+        temp: dailyData.A.temp, 
+        humidity: dailyData.A.humidity, 
+        hsi: dailyData.A.hsi 
+      };
       
-      database.B[date] = { temp: tempB, humidity: humB, hsi: hsiB };
+      database.B[date] = { 
+        temp: dailyData.B.temp, 
+        humidity: dailyData.B.humidity, 
+        hsi: dailyData.B.hsi 
+      };
     });
     return database;
   }, []);
 
-  // --- LOGIKA CHART ---
+  // --- LOGIKA CHART (TIDAK BERUBAH) ---
   useEffect(() => {
     if (!chartRef.current) return;
 
