@@ -268,7 +268,7 @@ export default function App() {
     <div className="bg-gray-50 text-gray-800 font-sans min-h-screen">
       {/* Navbar */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-6 lg:px-12"> {/* Full Width Container */}
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center text-white">
@@ -291,7 +291,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="w-full px-6 lg:px-12 py-8 space-y-8"> {/* Full Width Content */}
         
         {/* 1. Analisa Deskriptif Highlights */}
         <section>
@@ -486,7 +486,7 @@ export default function App() {
       </main>
 
       <footer className="bg-white border-t border-gray-200 mt-12 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
+        <div className="w-full px-6 lg:px-12 text-center text-gray-400 text-sm"> {/* Full Width Footer */}
           &copy; 2026 Poultry Analytics System. Dikembangkan dengan React & Tailwind.
         </div>
       </footer>
