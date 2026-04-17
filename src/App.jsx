@@ -277,14 +277,14 @@ export default function App() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                 activeTab === item.id 
                   ? 'bg-teal-500/20 text-teal-400 font-semibold shadow-inner border border-teal-500/30' 
                   : 'hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <item.icon size={20} className={activeTab === item.id ? 'animate-pulse' : ''} />
-              {item.label}
+              <item.icon size={20} className={`shrink-0 ${activeTab === item.id ? 'animate-pulse' : ''}`} />
+              <span className="leading-snug">{item.label}</span>
             </button>
           ))}
         </div>
