@@ -117,10 +117,25 @@ export default function App() {
   const [toastTimeout, setToastTimeout] = useState(null);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    // MODIFIKASI: Memaksa light mode secara agresif jika tidak ada preferensi
+    // dan menghapus potensi bentrok dengan pengaturan bawaan perangkat (prefers-color-scheme)
+    let savedTheme = localStorage.getItem('theme');
+    
+    // Jika tidak ada tema yang tersimpan sama sekali (pengunjung baru)
+    if (!savedTheme) {
+      savedTheme = 'light'; // Paksa ke light
+      localStorage.setItem('theme', 'light'); // Simpan paksa agar konsisten
+    }
+
     setTheme(savedTheme);
-    if (savedTheme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      // Langkah ekstra untuk membersihkan tema jika tailwind ngaco
+      document.documentElement.style.colorScheme = 'light'; 
+    }
 
     const styleSheet = document.createElement("style");
     styleSheet.innerText = customStyles;
