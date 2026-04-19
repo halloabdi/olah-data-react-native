@@ -117,23 +117,17 @@ export default function App() {
   const [toastTimeout, setToastTimeout] = useState(null);
 
   useEffect(() => {
-    // MODIFIKASI: Memaksa light mode secara agresif jika tidak ada preferensi
-    // dan menghapus potensi bentrok dengan pengaturan bawaan perangkat (prefers-color-scheme)
+    // Memaksa light mode secara agresif jika tidak ada preferensi
     let savedTheme = localStorage.getItem('theme');
-    
-    // Jika tidak ada tema yang tersimpan sama sekali (pengunjung baru)
     if (!savedTheme) {
-      savedTheme = 'light'; // Paksa ke light
-      localStorage.setItem('theme', 'light'); // Simpan paksa agar konsisten
+      savedTheme = 'light'; 
+      localStorage.setItem('theme', 'light');
     }
-
     setTheme(savedTheme);
-    
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
-      // Langkah ekstra untuk membersihkan tema jika tailwind ngaco
       document.documentElement.style.colorScheme = 'light'; 
     }
 
@@ -153,7 +147,6 @@ export default function App() {
         };
         
         const cleanedData = data.map(item => {
-          // Menampung dan memfilter seluruh gambar produk yang tersedia
           const imgs = [
             cleanImg(item['Link Gambar Utama Produk']),
             cleanImg(item['Link Gambar Kedua Produk']),
@@ -205,7 +198,6 @@ export default function App() {
     
     if (toastTimeout) clearTimeout(toastTimeout);
     setToast({ visible: true, productName: product['Nama Produk'], qty: currentQty });
-    // Mengubah durasi otomatis hilang menjadi 5 detik (5000 ms)
     const timer = setTimeout(() => setToast({ visible: false, productName: "", qty: 1 }), 5000);
     setToastTimeout(timer);
   };
@@ -229,7 +221,7 @@ export default function App() {
   const regularProducts = products.filter(p => p['isPinnedProduct'] !== 'Ya' && p['isPinnedProduct'] !== true && p['isPinnedProduct'] !== 'TRUE');
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 pb-24 md:pb-0 pt-0 md:pt-20">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 pb-24 md:pb-0 pt-0 md:pt-28 lg:pt-32">
       
       {/* Toast Notification Baru (Gradien Hijau Tua - Hijau dengan tombol X) */}
       <div className={`fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ${toast.visible ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'}`}>
@@ -244,7 +236,6 @@ export default function App() {
               Sukses Masuk di Keranjang!
             </span>
           </div>
-          {/* Tombol Tutup (X) */}
           <button 
             onClick={() => {
               if (toastTimeout) clearTimeout(toastTimeout);
@@ -257,54 +248,54 @@ export default function App() {
         </div>
       </div>
 
-      {/* HEADER */}
+      {/* HEADER - Diubah Menjadi Lebih Besar (Desktop & Tablet) dan Logo di Kiri dengan Jarak Padding px-12 */}
       <header className="fixed z-40 w-full bg-white/90 dark:bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300
         bottom-0 md:top-0 md:bottom-auto">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 md:h-20">
+        <div className="w-full px-2 md:px-8 lg:px-12 mx-auto">
+          <div className="flex justify-between items-center h-16 md:h-24 lg:h-28">
             
-            {/* Logo (Desktop) - Hanya Logo */}
+            {/* Logo (Desktop) - Pojok Kiri dan Diperbesar */}
             <div className="hidden md:flex items-center cursor-pointer" onClick={() => scrollTo('beranda')}>
-              <img src={LOGO_URL} alt="Logo" className="h-10 md:h-12 object-contain drop-shadow-sm" />
+              <img src={LOGO_URL} alt="Logo" className="h-10 md:h-16 lg:h-20 object-contain drop-shadow-sm" />
             </div>
 
-            {/* Navigation (Mobile & Desktop) */}
-            <nav className="flex w-full md:w-auto justify-between md:justify-center items-center gap-1 md:gap-4 lg:gap-6 text-xs md:text-sm font-medium px-2 md:px-0">
-              <NavButton icon={<Home className="w-5 h-5 md:w-4 md:h-4" />} label="Beranda" onClick={() => scrollTo('beranda')} isActive={activeSection === 'beranda'} />
-              <NavButton icon={<Sparkles className="w-5 h-5 md:w-4 md:h-4" />} label="Unggulan" onClick={() => scrollTo('unggulan')} isActive={activeSection === 'unggulan'} />
-              <NavButton icon={<ShoppingBag className="w-5 h-5 md:w-4 md:h-4" />} label="Produk" onClick={() => scrollTo('produk')} isActive={activeSection === 'produk'} />
+            {/* Navigation (Mobile & Desktop) - Menyesuaikan posisi ke kanan pada layar besar */}
+            <nav className="flex w-full md:w-auto justify-between md:justify-end items-center gap-1 md:gap-4 lg:gap-8 text-xs md:text-sm lg:text-base font-bold px-2 md:px-0">
+              <NavButton icon={<Home className="w-5 h-5 md:w-5 md:h-5 lg:w-6 lg:h-6" />} label="Beranda" onClick={() => scrollTo('beranda')} isActive={activeSection === 'beranda'} />
+              <NavButton icon={<Sparkles className="w-5 h-5 md:w-5 md:h-5 lg:w-6 lg:h-6" />} label="Unggulan" onClick={() => scrollTo('unggulan')} isActive={activeSection === 'unggulan'} />
+              <NavButton icon={<ShoppingBag className="w-5 h-5 md:w-5 md:h-5 lg:w-6 lg:h-6" />} label="Produk" onClick={() => scrollTo('produk')} isActive={activeSection === 'produk'} />
               
               {/* Keranjang Menu Nav */}
               <div className="relative">
                 <NavButton 
-                  icon={<ShoppingCart className="w-5 h-5 md:w-4 md:h-4" />} 
+                  icon={<ShoppingCart className="w-5 h-5 md:w-5 md:h-5 lg:w-6 lg:h-6" />} 
                   label="Keranjang" 
                   onClick={() => setCartModalOpen(true)} 
                   isActive={cartModalOpen} 
                 />
                 {cartItemCount > 0 && (
-                  <span className="absolute top-0 right-1 md:-top-1 md:-right-1 bg-red-500 text-white text-[10px] w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-full font-bold shadow-md animate-bounce pointer-events-none">
+                  <span className="absolute top-0 right-1 md:-top-1 md:-right-2 bg-red-500 text-white text-[10px] md:text-xs lg:text-sm w-4 h-4 md:w-6 md:h-6 lg:w-7 lg:h-7 flex items-center justify-center rounded-full font-bold shadow-md animate-bounce pointer-events-none">
                     {cartItemCount > 99 ? '99+' : cartItemCount}
                   </span>
                 )}
               </div>
 
-              <NavButton icon={<PhoneCall className="w-5 h-5 md:w-4 md:h-4" />} label="Kontak" onClick={() => scrollTo('kontak')} isActive={activeSection === 'kontak'} />
+              <NavButton icon={<PhoneCall className="w-5 h-5 md:w-5 md:h-5 lg:w-6 lg:h-6" />} label="Kontak" onClick={() => scrollTo('kontak')} isActive={activeSection === 'kontak'} />
               
-              <div className="hidden md:block w-px h-6 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+              <div className="hidden md:block w-px h-8 lg:h-10 bg-slate-300 dark:bg-slate-700 mx-1 lg:mx-3"></div>
               
               {/* Login Button (Hanya tampil di Header Desktop) */}
               <button 
                 onClick={() => setLoginModalOpen(true)}
-                className="hidden md:flex flex-row items-center gap-1.5 p-2 md:px-4 md:py-2 text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition-colors md:bg-purple-50 md:dark:bg-purple-900/30 md:rounded-full font-semibold"
+                className="hidden md:flex flex-row items-center gap-1.5 lg:gap-2.5 p-2 md:px-5 md:py-2.5 lg:px-8 lg:py-3.5 text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition-colors md:bg-purple-50 md:dark:bg-purple-900/30 md:rounded-full font-bold"
               >
-                <User className="w-4 h-4" />
+                <User className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
                 <span>Login</span>
               </button>
 
               {/* Theme Toggle (Hanya Desktop) */}
-              <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors hidden md:block">
-                {theme === 'light' ? <Moon className="w-5 h-5 text-slate-600" /> : <Sun className="w-5 h-5 text-amber-400" />}
+              <button onClick={toggleTheme} className="p-2 md:p-3 lg:p-4 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors hidden md:block">
+                {theme === 'light' ? <Moon className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-slate-600" /> : <Sun className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-amber-400" />}
               </button>
             </nav>
           </div>
@@ -485,13 +476,13 @@ const LoadingIndicator = () => (
 const NavButton = ({ icon, label, onClick, isActive }) => (
   <button 
     onClick={onClick}
-    className={`flex flex-col md:flex-row items-center gap-1 p-2 md:px-3 md:py-2 rounded-xl transition-colors
+    className={`flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 lg:px-4 lg:py-3 rounded-xl transition-colors
       ${isActive 
         ? 'text-purple-600 dark:text-purple-400' 
         : 'text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-300'}`}
   >
     {icon}
-    <span className="text-[9px] md:text-sm font-semibold">{label}</span>
+    <span className="text-[9px] md:text-sm lg:text-base font-bold">{label}</span>
   </button>
 );
 
