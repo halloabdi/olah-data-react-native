@@ -1,12 +1,31 @@
 <!doctype html>
-<html lang="en">
-  <head>
+<html lang="id">
+
+<head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Poultry Analytics</title>
-  </head>
-  <body>
+    <link rel="icon" type="image/svg+xml"
+        href="[https://yellow-ruby-32.tiiny.site/Screenshot-2026-04-18-220340.svg](https://yellow-ruby-32.tiiny.site/Screenshot-2026-04-18-220340.svg)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>POKTAN TANI AGUNG</title>
+    <!-- Mencegah flash color sebelum React termuat sepenuhnya -->
+    <script>
+        let theme = localStorage.getItem('theme');
+        if (!theme) {
+            theme = 'light';
+            localStorage.setItem('theme', 'light');
+        }
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+        }
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+</body>
+
 </html>
