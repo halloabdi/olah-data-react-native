@@ -695,7 +695,6 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
   const tags = product['Tag Produk'] ? product['Tag Produk'].split(',').map(t => t.trim()) : [];
   const komposisi = product['Komposisi Produk'] ? product['Komposisi Produk'].split(',').map(k => k.trim()) : [];
 
-  // Logika Kustomisasi Judul Komposisi (Jenis Ternak, Tools Kandang, atau Komposisi)
   let labelKomposisi = "Komposisi";
   const categoryStr = (product['Kategori Produk'] || '').toLowerCase();
   
@@ -715,7 +714,7 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
         style={{ animationDuration: '0.3s' }}
         onClick={onClose}
       >
-        {/* Layout Wrapper: overflow-y-auto untuk mobile agar scrollbar berfungsi dengan baik di seluruh area */}
+        {/* Layout Wrapper: overflow-y-auto untuk mobile agar scrollbar berfungsi dengan baik */}
         <div 
           className="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row relative"
           onClick={(e) => e.stopPropagation()}
@@ -739,7 +738,6 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
                <Maximize className="w-3 h-3 md:w-4 md:h-4" /> Gambar Asli Penuh
              </button>
 
-             {/* Image Slider */}
              <div 
               ref={sliderRef}
               onScroll={handleScroll}
@@ -752,8 +750,6 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
                {product.allImages && product.allImages.length > 0 ? (
                  product.allImages.map((img, i) => (
                    <div key={i} className="w-full h-full flex-shrink-0 snap-center relative">
-                     {/* Aspek ratio dipertahankan crop/persegi di mobile (aspect-square + object-cover), 
-                         dan menjadi contain di desktop */}
                      <img 
                        src={img} 
                        alt={`${product['Nama Produk']} - Gambar ${i + 1}`} 
@@ -772,7 +768,6 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
                )}
              </div>
 
-             {/* Navigasi Swipe (Tampil jika gambar > 1) */}
              {product.allImages && product.allImages.length > 1 && (
                <>
                  <button 
@@ -796,8 +791,8 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
              )}
           </div>
 
-          {/* Area Teks (Scroll mandiri di desktop) */}
-          <div className="w-full md:w-1/2 p-6 md:p-8 md:overflow-y-auto custom-scrollbar flex flex-col">
+          {/* Area Teks - Diperbaiki Padding dan Pemaksaan Baris Teks Penerbit */}
+          <div className="w-full md:w-1/2 p-6 md:p-8 pt-4 md:pt-8 md:overflow-y-auto custom-scrollbar flex flex-col">
             <div className="flex-grow">
               <div className="mb-2 flex gap-2 flex-wrap mt-2 md:mt-0">
                  {product['Kategori Produk'] && (
@@ -834,7 +829,7 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 mb-4">
                   <div>
                     <span className="block text-[10px] text-slate-500 dark:text-slate-400 uppercase">Stok Tersedia</span>
                     <span className="font-bold text-slate-800 dark:text-white text-lg">{product['Jumlah Stok']}</span>
@@ -847,14 +842,17 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
                     <span className="block text-[10px] text-slate-500 dark:text-slate-400 uppercase">Min. Beli</span>
                     <span className="font-bold text-slate-800 dark:text-white text-lg">{product['Jumlah Minimum Pembelian']} item</span>
                   </div>
-                   <div>
+                   <div className="flex flex-col justify-center">
                     <span className="block text-[10px] text-slate-500 dark:text-slate-400 uppercase">Penerbit</span>
-                    <span className="font-bold text-slate-800 dark:text-white truncate">POKTAN TANI AGUNG</span>
+                    {/* Perbaikan: Paksa baris baru pada mobile agar tidak overflow */}
+                    <span className="font-bold text-slate-800 dark:text-white text-[13px] md:text-base leading-tight">
+                      POKTAN <br className="md:hidden" /> TANI AGUNG
+                    </span>
                   </div>
                 </div>
 
                 {tags.length > 0 && tags[0] !== "" && (
-                  <div>
+                  <div className="pb-4">
                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Tags</h4>
                     <div className="flex flex-wrap gap-1">
                       {tags.map((tag, idx) => (
@@ -868,7 +866,7 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex gap-4">
+            <div className="mt-4 pb-10 md:pb-0 md:mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex gap-4">
               <button 
                 onClick={() => onAddToCart(product)}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-sky-500 hover:from-purple-700 hover:to-sky-600 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 text-lg"
@@ -1043,7 +1041,7 @@ const CartModal = ({ cart, onClose, updateQty, removeItem }) => {
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Pilihan Kurir</label>
               <div className="grid grid-cols-3 gap-2">
                 {kurirOptions.map(k => (
-                  <button key={k} onClick={() => setFormData({...formData, kurir: k})} className={`py-2 rounded-lg border text-xs font-semibold transition-colors ${formData.kurir === k ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-purple-400 dark:hover:border-slate-500'}`}>
+                  <button key={k} onClick={() => setFormData({...formData, kurir: k})} className={`py-2 rounded-lg border text-xs font-semibold transition-colors ${formData.kurir === k ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-purple-400 dark:hover:border-slate-500'}`}>
                     {k}
                   </button>
                 ))}
@@ -1054,7 +1052,7 @@ const CartModal = ({ cart, onClose, updateQty, removeItem }) => {
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Metode Pembayaran</label>
               <div className="grid grid-cols-3 gap-2">
                 {paymentOptions.map(p => (
-                  <button key={p} onClick={() => setFormData({...formData, pembayaran: p})} className={`py-2 rounded-lg border text-xs font-semibold transition-colors ${formData.pembayaran === p ? 'bg-sky-600 border-sky-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-sky-400 dark:hover:border-slate-500'}`}>
+                  <button key={p} onClick={() => setFormData({...formData, pembayaran: p})} className={`py-2 rounded-lg border text-xs font-semibold transition-colors ${formData.pembayaran === p ? 'bg-sky-600 border-sky-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-sky-400 dark:hover:border-slate-500'}`}>
                     {p}
                   </button>
                 ))}
