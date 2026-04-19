@@ -131,10 +131,21 @@ export default function App() {
         const response = await fetch(GAS_URL);
         const data = await response.json();
         
+        const cleanImg = (str) => {
+          if (!str) return '';
+          if (str.includes(',')) return str.split(',')[0].trim();
+          return str.trim();
+        };
+        
         const cleanedData = data.map(item => {
-          let mainImage = item['Link Gambar Utama Produk'] || '';
-          if (mainImage.includes(',')) mainImage = mainImage.split(',')[0].trim();
-          return { ...item, cleanImage: mainImage };
+          // Menampung dan memfilter seluruh gambar produk yang tersedia
+          const imgs = [
+            cleanImg(item['Link Gambar Utama Produk']),
+            cleanImg(item['Link Gambar Kedua Produk']),
+            cleanImg(item['Link Gambar Ketiga Produk'])
+          ].filter(Boolean);
+          
+          return { ...item, cleanImage: imgs[0] || '', allImages: imgs };
         });
         
         setProducts(cleanedData);
@@ -203,7 +214,7 @@ export default function App() {
   const regularProducts = products.filter(p => p['isPinnedProduct'] !== 'Ya' && p['isPinnedProduct'] !== true && p['isPinnedProduct'] !== 'TRUE');
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 pb-20 md:pb-0 pt-0 md:pt-20">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 pb-24 md:pb-0 pt-0 md:pt-20">
       
       {/* Toast Notification Baru (Gradien Hijau Tua - Hijau dengan tombol X) */}
       <div className={`fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ${toast.visible ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'}`}>
@@ -305,7 +316,7 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden pt-12 md:pt-0">
         
         {/* BERANDA SECTION */}
-        <section id="beranda" className="min-h-[60vh] flex flex-col justify-center items-center text-center py-10 md:py-16 animate-on-load">
+        <section id="beranda" className="min-h-[50vh] flex flex-col justify-center items-center text-center py-8 md:py-12 animate-on-load">
           {/* Mobile Logo Fallback */}
           <div className="md:hidden mb-4 drop-shadow-xl bg-white dark:bg-slate-900 p-3 rounded-3xl">
             <img src={LOGO_URL} alt="POKTAN Logo" className="h-16 object-contain" />
@@ -604,7 +615,7 @@ const PaginatedGrid = ({ products, onProductClick, onAddToCart, isPinned }) => {
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-10 flex justify-center items-center gap-2">
+        <div className="mt-10 mb-8 flex justify-center items-center gap-2 relative z-10">
           <button 
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
             disabled={currentPage === 1} 
@@ -653,11 +664,27 @@ const PaginatedGrid = ({ products, onProductClick, onAddToCart, isPinned }) => {
 // --- PRODUCT FULL PREVIEW MODAL ---
 const ProductModal = ({ product, onClose, onAddToCart }) => {
   const [isFullScreenImage, setIsFullScreenImage] = useState(false);
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const sliderRef = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => document.body.style.overflow = 'auto';
   }, []);
+
+  const handleScroll = () => {
+    if (!sliderRef.current) return;
+    const scrollPos = sliderRef.current.scrollLeft;
+    const width = sliderRef.current.offsetWidth;
+    const newIndex = Math.round(scrollPos / width);
+    setActiveImgIndex(newIndex);
+  };
+
+  const scrollToIndex = (index) => {
+    if (!sliderRef.current) return;
+    const width = sliderRef.current.offsetWidth;
+    sliderRef.current.scrollTo({ left: width * index, behavior: 'smooth' });
+  };
 
   const tags = product['Tag Produk'] ? product['Tag Produk'].split(',').map(t => t.trim()) : [];
   const komposisi = product['Komposisi Produk'] ? product['Komposisi Produk'].split(',').map(k => k.trim()) : [];
@@ -682,8 +709,9 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
         style={{ animationDuration: '0.3s' }}
         onClick={onClose}
       >
+        {/* Layout Wrapper: overflow-y-auto untuk mobile agar scrollbar berfungsi dengan baik di seluruh area */}
         <div 
-          className="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative"
+          className="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row relative"
           onClick={(e) => e.stopPropagation()}
         >
           
@@ -694,15 +722,9 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
             <X className="w-6 h-6" />
           </button>
 
-          <div 
-            className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-0 min-h-[300px] md:min-h-0 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 overflow-hidden relative group cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsFullScreenImage(true);
-            }}
-          >
+          <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-950 flex-shrink-0 relative group">
              <button 
-               className="absolute top-4 left-4 z-10 bg-black/60 hover:bg-black/80 text-white text-[10px] md:text-xs px-3 py-1.5 md:px-4 md:py-2 rounded-md backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg border border-white/20"
+               className="absolute top-4 left-4 z-20 bg-black/60 hover:bg-black/80 text-white text-[10px] md:text-xs px-3 py-1.5 md:px-4 md:py-2 rounded-md backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg border border-white/20"
                onClick={(e) => {
                  e.stopPropagation();
                  setIsFullScreenImage(true);
@@ -710,14 +732,66 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
              >
                <Maximize className="w-3 h-3 md:w-4 md:h-4" /> Gambar Asli Penuh
              </button>
-             <img 
-              src={product.cleanImage} 
-              alt={product['Nama Produk']} 
-              className="w-full h-full object-cover md:object-contain drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-300"
-            />
+
+             {/* Image Slider */}
+             <div 
+              ref={sliderRef}
+              onScroll={handleScroll}
+              className="w-full aspect-square md:aspect-auto md:h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsFullScreenImage(true);
+              }}
+             >
+               {product.allImages && product.allImages.length > 0 ? (
+                 product.allImages.map((img, i) => (
+                   <div key={i} className="w-full h-full flex-shrink-0 snap-center relative">
+                     {/* Aspek ratio dipertahankan crop/persegi di mobile (aspect-square + object-cover), 
+                         dan menjadi contain di desktop */}
+                     <img 
+                       src={img} 
+                       alt={`${product['Nama Produk']} - Gambar ${i + 1}`} 
+                       className="w-full h-full object-cover md:object-contain drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-300"
+                     />
+                   </div>
+                 ))
+               ) : (
+                 <div className="w-full h-full flex-shrink-0 snap-center relative">
+                   <img 
+                     src={product.cleanImage} 
+                     alt={product['Nama Produk']} 
+                     className="w-full h-full object-cover md:object-contain drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-300"
+                   />
+                 </div>
+               )}
+             </div>
+
+             {/* Navigasi Swipe (Tampil jika gambar > 1) */}
+             {product.allImages && product.allImages.length > 1 && (
+               <>
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); scrollToIndex(Math.max(0, activeImgIndex - 1)); }}
+                   className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                 >
+                   <ChevronLeft className="w-5 h-5" />
+                 </button>
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); scrollToIndex(Math.min(product.allImages.length - 1, activeImgIndex + 1)); }}
+                   className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                 >
+                   <ChevronRight className="w-5 h-5" />
+                 </button>
+                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/30 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none">
+                   {product.allImages.map((_, i) => (
+                     <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === activeImgIndex ? 'bg-white' : 'bg-white/40'}`} />
+                   ))}
+                 </div>
+               </>
+             )}
           </div>
 
-          <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col">
+          {/* Area Teks (Scroll mandiri di desktop) */}
+          <div className="w-full md:w-1/2 p-6 md:p-8 md:overflow-y-auto custom-scrollbar flex flex-col">
             <div className="flex-grow">
               <div className="mb-2 flex gap-2 flex-wrap mt-2 md:mt-0">
                  {product['Kategori Produk'] && (
@@ -820,7 +894,7 @@ const ProductModal = ({ product, onClose, onAddToCart }) => {
             <X className="w-6 h-6" />
           </button>
           <img 
-            src={product.cleanImage} 
+            src={product.allImages ? product.allImages[activeImgIndex] : product.cleanImage} 
             alt="Full Size Preview" 
             className="max-w-full max-h-full object-contain cursor-default drop-shadow-2xl rounded-md" 
             onClick={(e) => e.stopPropagation()} 
